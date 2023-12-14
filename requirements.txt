@@ -1,0 +1,6 @@
+fastapi==0.105.0
+pydantic==2.5.2
+uvicorn==0.24.0.post1
+
+mypy==1.7.1
+black==23.12.0

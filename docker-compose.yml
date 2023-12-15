@@ -1,0 +1,34 @@
+services:
+  task-manager:
+    image: task-manager
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./app:/app:rw
+    restart: on-failure
+    ports:
+      - "8000:8000"
+    environment:
+      - WATCHFILES_FORCE_POLLING=true
+    env_file:
+      - ENV/local.env
+    networks:
+      - private
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: task-manager
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    networks:
+      - private
+    ports:
+      - "5432:5432"
+
+networks:
+  private:
+    driver: bridge

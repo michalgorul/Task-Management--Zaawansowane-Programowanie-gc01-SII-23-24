@@ -1,15 +1,22 @@
-from typing import Dict
-
 from fastapi import FastAPI
 
-app = FastAPI()
+from app.database.database import engine
+from app.database.models import Base
+from app.user.router import router as user_router
+from app.task.router import router as task_router
 
 
-@app.get("/")
-async def root() -> Dict[str, str]:
-    return {"message": "Hello World"}
+app = FastAPI(
+    title="Task Management API",
+    description="REST API for managing tasks",
+    version="0.1.0",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+)
 
 
-@app.get("/hello/{name}")
-async def say_hello(name: str) -> Dict[str, str]:
-    return {"message": f"Hello {name}"}
+app.include_router(user_router)
+app.include_router(task_router)
+
+
+Base.metadata.create_all(engine)

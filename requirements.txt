@@ -1,6 +1,10 @@
 fastapi==0.105.0
 pydantic==2.5.2
+pydantic-settings==2.1.0
 uvicorn==0.24.0.post1
+SQLAlchemy==2.0.23
+SQLAlchemy-Utils==0.41.1
+psycopg2==2.9.9
 
 mypy==1.7.1
 black==23.12.0

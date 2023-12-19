@@ -1,4 +1,4 @@
-from app.models import BaseModel
+from app.api.models import BaseModel
 
 
 class BaseTask(BaseModel):

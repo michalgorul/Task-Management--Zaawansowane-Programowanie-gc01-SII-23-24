@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import APIRouter
 
-from app.task.models import Task, TaskCreate
+from app.api.task.models import Task, TaskCreate
 
 router = APIRouter(prefix="", tags=["Task Management"])
 

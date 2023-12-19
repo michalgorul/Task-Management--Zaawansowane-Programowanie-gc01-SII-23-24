@@ -1,6 +1,8 @@
 from typing import List
+
 from sqlalchemy.orm import Session
-from app.task.models import Task, TaskCreate
+
+from app.api.task.models import Task, TaskCreate
 from app.database.database import engine
 
 

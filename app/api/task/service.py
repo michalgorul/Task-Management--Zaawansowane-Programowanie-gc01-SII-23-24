@@ -1,6 +1,8 @@
 from typing import List
-from app.task.models import Task, TaskCreate
+
 from sqlalchemy.orm import Session
+
+from app.api.task.models import Task, TaskCreate
 
 
 def create_task(db: Session, task: TaskCreate) -> Task:

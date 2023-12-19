@@ -1,6 +1,8 @@
 fastapi==0.105.0
+fastapi-pagination==0.12.14
 pydantic==2.5.2
 pydantic-settings==2.1.0
+email-validator==2.1.0.post1
 uvicorn==0.24.0.post1
 SQLAlchemy==2.0.23
 SQLAlchemy-Utils==0.41.1

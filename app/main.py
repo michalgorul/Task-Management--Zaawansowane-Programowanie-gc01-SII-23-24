@@ -1,10 +1,9 @@
+from app.database.models import Base
 from fastapi import FastAPI
 
+from app.api.task.router import router as task_router
+from app.api.user.router import router as user_router
 from app.database.database import engine
-from app.database.models import Base
-from app.user.router import router as user_router
-from app.task.router import router as task_router
-
 
 app = FastAPI(
     title="Task Management API",

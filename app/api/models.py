@@ -1,7 +1,5 @@
-from pydantic import BaseModel as Model
+from pydantic import BaseModel as Model, ConfigDict
 
 
 class BaseModel(Model):
-    class Config:
-        populate_by_name = True
-        from_attributes = True
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)

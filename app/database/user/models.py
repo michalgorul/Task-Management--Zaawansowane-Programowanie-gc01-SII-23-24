@@ -11,7 +11,7 @@ from app.database.database import Base
 class UserTable(Base):  # type: ignore
     __tablename__ = "users"
 
-    user_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    username = Column(String())
-    email = Column(String())
+    user_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True)
+    username = Column(String(), unique=True)
+    email = Column(String(), unique=True)
     password = Column(String())

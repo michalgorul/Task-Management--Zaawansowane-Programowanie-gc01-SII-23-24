@@ -16,9 +16,9 @@ services:
     networks:
       - private
     depends_on:
-      - postgres
+      - db
 
-  postgres:
+  db:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: task-manager
@@ -28,6 +28,17 @@ services:
       - private
     ports:
       - "5432:5432"
+
+  test-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    networks:
+      - private
+    ports:
+      - "5433:5432"
 
 networks:
   private:

@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from fastapi_pagination import Page, Params as PaginationParams
 from sqlalchemy.orm import Session
 
-from app.api.user.models import BaseUser, User, UserCreate
+from app.api.user.models import BaseUser, User, UserCreate, UserUpdate
 from app.database.user import crud
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,12 @@ async def get_user(user_id: UUID, db: Session) -> User:
     """
     db_user = crud.get_user(user_id, db)
     if db_user:
-        return User.model_validate(db_user[0])
+        try:
+            return User.model_validate(db_user[0])
+        except Exception as e:
+            error_str = f"Failed to get User, user_id={user_id}, error={e}"
+            logger.error(error_str)
+            raise HTTPException(status_code=500, detail=str(e))
     raise HTTPException(*USER_NOT_FOUND)
 
 
@@ -43,7 +48,7 @@ async def get_users(pagination: PaginationParams, db: Session) -> Page[User]:
     return crud.get_users(pagination, db)
 
 
-async def update_user(user_id: UUID, new_user: BaseUser, db: Session) -> User:
+async def update_user(user_id: UUID, new_user: UserUpdate, db: Session) -> User:
     """
     Service function to update user information.
     """
@@ -56,7 +61,7 @@ async def update_user(user_id: UUID, new_user: BaseUser, db: Session) -> User:
 
     if updated_user:
         logger.info(f"Updated user, user_id={user_id}, new_user={new_user}")
-        return User(userId=user_id, username=new_user.username, email=new_user.email)
+        return await get_user(user_id, db)
     raise HTTPException(*USER_NOT_FOUND)
 
 

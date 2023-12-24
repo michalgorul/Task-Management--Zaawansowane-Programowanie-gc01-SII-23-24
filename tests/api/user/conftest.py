@@ -1,9 +1,11 @@
+from datetime import datetime, timedelta
 from uuid import UUID
 
 import pytest
 from fastapi_pagination import Page
+from pydantic import SecretStr
 
-from app.api.user.models import BaseUser, User, UserCreate
+from app.api.user.models import BaseUser, User, UserCreate, UserUpdate
 from app.database.user.models import UserTable
 
 
@@ -13,28 +15,43 @@ def user_id() -> UUID:
 
 
 @pytest.fixture
-def new_user() -> BaseUser:
+def created_at() -> datetime:
+    return datetime(year=2023, month=1, day=1, hour=0, minute=0, second=0)
+
+
+@pytest.fixture
+def base_user() -> BaseUser:
     return BaseUser(email="test_user@example.com", username="test_username")
 
 
 @pytest.fixture
-def user_create(new_user: BaseUser) -> UserCreate:
-    return UserCreate(**new_user.model_dump(), password="test_password1!")
+def user_create(base_user: BaseUser) -> UserCreate:
+    return UserCreate(**base_user.model_dump(), password=SecretStr("test_password1!"))
 
 
 @pytest.fixture
-def user(user_id: UUID, new_user: BaseUser) -> User:
-    return User(user_id=user_id, **new_user.model_dump())
+def user(user_id: UUID, base_user: BaseUser, created_at: datetime) -> User:
+    return User(
+        user_id=user_id,
+        **base_user.model_dump(),
+        created_at=created_at,
+        updated_at=None
+    )
 
 
 @pytest.fixture
-def update_user() -> BaseUser:
-    return BaseUser(email="test_user_new@example.com", username="test_username_new")
+def update_user() -> UserUpdate:
+    return UserUpdate(email="test_user_new@example.com", username="test_username_new")
 
 
 @pytest.fixture
-def updated_user(user_id: UUID, update_user: BaseUser) -> User:
-    return User(user_id=user_id, **update_user.model_dump())
+def updated_user(user_id: UUID, update_user: BaseUser, created_at: datetime) -> User:
+    return User(
+        user_id=user_id,
+        **update_user.model_dump(),
+        created_at=created_at,
+        updated_at=created_at + timedelta(days=1)
+    )
 
 
 @pytest.fixture

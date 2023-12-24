@@ -6,7 +6,7 @@ from fastapi_pagination import Page, Params as PaginationParams
 from sqlalchemy.orm import Session
 
 from app.api.user import service
-from app.api.user.models import BaseUser, User, UserCreate
+from app.api.user.models import BaseUser, User, UserCreate, UserUpdate
 from app.database.database import get_db
 
 router = APIRouter(prefix="", tags=["User Management"])
@@ -33,7 +33,7 @@ async def get_users(
 
 @router.put("/users/{user_id}", response_model=User)
 async def update_user(
-    user_id: UUID, new_user: BaseUser, db: Annotated[Session, Depends(get_db)]
+    user_id: UUID, new_user: UserUpdate, db: Annotated[Session, Depends(get_db)]
 ) -> User:
     return await service.update_user(user_id=user_id, new_user=new_user, db=db)
 

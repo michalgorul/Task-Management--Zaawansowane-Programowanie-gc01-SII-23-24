@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import EmailStr, Field, field_validator
@@ -12,11 +13,20 @@ class BaseUser(BaseModel):
     email: EmailStr = Field(...)
 
 
+class UserUpdate(BaseModel):
+    username: str | None = Field(None, min_length=6, max_length=30)
+    email: EmailStr | None = Field(None)
+
+
 class User(BaseUser):
     user_id: UUID = Field(..., alias="userId")
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime | None = Field(..., alias="updatedAt")
 
 
 class UserCreate(BaseUser):
+    username: str = Field(..., min_length=6, max_length=30)
+    email: EmailStr = Field(...)
     password: SecretStr = Field(..., min_length=6, max_length=30)
 
     @field_validator("password")

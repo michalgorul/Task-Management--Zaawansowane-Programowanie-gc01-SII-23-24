@@ -16,12 +16,12 @@ services:
     networks:
       - private
     depends_on:
-      - db
+      - postgres
 
-  db:
+  postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: task-manager
+      POSTGRES_DB: task_manager
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     networks:

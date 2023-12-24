@@ -6,7 +6,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import CursorResult, Row, delete, select, update
 from sqlalchemy.orm import Session
 
-from app.api.user.models import BaseUser, User, UserCreate
+from app.api.user.models import BaseUser, User, UserCreate, UserUpdate
 from app.database.user.models import UserTable
 
 
@@ -14,7 +14,11 @@ def create_user(user: UserCreate, db: Session) -> UserTable:
     """
     Create a new user using one of crud operations.
     """
-    row = UserTable(**user.model_dump())
+    row = UserTable(
+        email=user.email,
+        username=user.username,
+        password=user.password.get_secret_value(),
+    )
     db.add(row)
     db.commit()
     return row
@@ -36,7 +40,9 @@ def get_users(pagination: PaginationParams, db: Session) -> Page[User]:
     return paginate_user
 
 
-def update_user(user_id: UUID, new_user: BaseUser, db: Session) -> Row[Any] | None:
+def update_user(
+    user_id: UUID, new_user: UserUpdate, db: Session
+) -> CursorResult[int] | None:
     """
     Update user information using one of crud operations.
     """
@@ -45,11 +51,11 @@ def update_user(user_id: UUID, new_user: BaseUser, db: Session) -> Row[Any] | No
         query = (
             update(UserTable)
             .where(UserTable.user_id == user_id)
-            .values(**new_user.model_dump())
+            .values(**new_user.model_dump(exclude_unset=True))
         )
         cursor = db.execute(query)
         db.commit()
-        return cursor.fetchone()
+        return cursor
     else:
         return None
 

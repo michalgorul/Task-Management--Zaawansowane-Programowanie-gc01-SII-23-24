@@ -7,7 +7,7 @@ from pytest_mock import MockFixture
 from sqlalchemy.orm import Session
 
 from app.api.user import service
-from app.api.user.models import BaseUser, User, UserCreate
+from app.api.user.models import BaseUser, User, UserCreate, UserUpdate
 from app.api.user.service import (
     create_user,
     delete_user,
@@ -118,11 +118,15 @@ class TestUserServices:
             mocker: MockFixture,
             db: Session,
             user_id: UUID,
-            update_user: BaseUser,
+            update_user: UserUpdate,
             updated_user: User,
         ) -> None:
             mock_update_user_crud = mocker.patch(
                 "app.api.user.service.crud.update_user", return_value=1
+            )
+            mock_get_user = mocker.patch(
+                "app.api.user.service.crud.get_user",
+                return_value=[UserTable(**updated_user.model_dump())],
             )
             updated_user_service = await service.update_user(user_id, update_user, db)
 
@@ -130,6 +134,7 @@ class TestUserServices:
             mock_update_user_crud.assert_called_once_with(
                 user_id=user_id, new_user=update_user, db=db
             )
+            mock_get_user.assert_called_once_with(user_id, db)
 
         @pytest.mark.asyncio
         async def test_update_user__common_exception(
@@ -137,12 +142,12 @@ class TestUserServices:
             mocker: MockFixture,
             db: Session,
             user_id: UUID,
-            update_user: BaseUser,
+            update_user: UserUpdate,
         ) -> None:
             mock_update_user_crud = mocker.patch(
                 "app.api.user.service.crud.update_user", side_effect=Exception()
             )
-            with pytest.raises(Exception) as e:
+            with pytest.raises(HTTPException) as e:
                 await service.update_user(user_id, update_user, db)
 
             assert e.value.status_code == 500

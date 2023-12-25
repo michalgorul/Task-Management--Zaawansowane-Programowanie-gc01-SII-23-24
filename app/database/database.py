@@ -21,8 +21,6 @@ engine = create_engine(url=db_string, echo=True)
 if not database_exists(engine.url):
     create_database(engine.url)
 
-print(engine.url)
-
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 

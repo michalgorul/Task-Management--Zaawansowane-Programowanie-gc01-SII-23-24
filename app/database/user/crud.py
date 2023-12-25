@@ -4,9 +4,9 @@ from uuid import UUID
 from fastapi_pagination import Page, Params as PaginationParams
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import CursorResult, Row, delete, select, update
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, lazyload
 
-from app.api.user.models import BaseUser, User, UserCreate, UserUpdate
+from app.api.user.models import UserCreate, UserResponse, UserUpdate
 from app.database.user.models import UserTable
 
 
@@ -28,15 +28,21 @@ def get_user(user_id: UUID, db: Session) -> Row[tuple[UserTable]] | None:
     """
     Retrieve a user by ID using one of crud operations.
     """
-    query = select(UserTable).where(UserTable.user_id == user_id)
-    return db.execute(query).fetchone()
+    query = (
+        select(UserTable)
+        .options(lazyload(UserTable.tasks))
+        .where(UserTable.user_id == user_id)
+    )
+    return db.execute(query).first()
 
 
-def get_users(pagination: PaginationParams, db: Session) -> Page[User]:
+def get_users(pagination: PaginationParams, db: Session) -> Page[UserResponse]:
     """
     Retrieve a list of users with optional pagination using one of crud operations.
     """
-    paginate_user: Page[User] = paginate(db, select(UserTable), pagination)
+    paginate_user: Page[UserResponse] = paginate(
+        db, select(UserTable).options(lazyload(UserTable.tasks)), pagination
+    )
     return paginate_user
 
 

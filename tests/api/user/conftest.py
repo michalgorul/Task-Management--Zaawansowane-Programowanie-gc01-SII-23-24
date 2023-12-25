@@ -5,18 +5,17 @@ import pytest
 from fastapi_pagination import Page
 from pydantic import SecretStr
 
-from app.api.user.models import BaseUser, User, UserCreate, UserUpdate
+from app.api.task.models import TaskWithoutUser
+from app.api.user.models import (
+    BaseUser,
+    User,
+    UserCreate,
+    UserResponse,
+    UserTasks,
+    UserUpdate,
+)
+from app.database.task.models import TaskTable
 from app.database.user.models import UserTable
-
-
-@pytest.fixture
-def user_id() -> UUID:
-    return UUID("92e604c8-4702-48fc-9d7a-0631f4cb2b01")
-
-
-@pytest.fixture
-def created_at() -> datetime:
-    return datetime(year=2023, month=1, day=1, hour=0, minute=0, second=0)
 
 
 @pytest.fixture
@@ -30,12 +29,14 @@ def user_create(base_user: BaseUser) -> UserCreate:
 
 
 @pytest.fixture
-def user(user_id: UUID, base_user: BaseUser, created_at: datetime) -> User:
-    return User(
+def user_response(
+    user_id: UUID, base_user: BaseUser, created_at: datetime
+) -> UserResponse:
+    return UserResponse(
         user_id=user_id,
         **base_user.model_dump(),
         created_at=created_at,
-        updated_at=None
+        updated_at=None,
     )
 
 
@@ -45,30 +46,54 @@ def update_user() -> UserUpdate:
 
 
 @pytest.fixture
-def updated_user(user_id: UUID, update_user: BaseUser, created_at: datetime) -> User:
+def updated_user(user_id: UUID, update_user: UserUpdate, created_at: datetime) -> User:
     return User(
         user_id=user_id,
         **update_user.model_dump(),
         created_at=created_at,
-        updated_at=created_at + timedelta(days=1)
+        updated_at=created_at + timedelta(days=1),
+        tasks=[],
     )
 
 
 @pytest.fixture
-def page() -> int:
-    return 1
+def user_page(page: int, size: int, user_response: User) -> Page[User]:
+    return Page(page=page, total=1, size=size, pages=1, items=[user_response])
 
 
 @pytest.fixture
-def size() -> int:
-    return 50
+def user_table(user_response: User) -> UserTable:
+    return UserTable(**user_response.model_dump())
 
 
 @pytest.fixture
-def user_page(page: int, size: int, user: User) -> Page[User]:
-    return Page(page=page, total=1, size=size, pages=1, items=[user])
+def task_without_user(created_at: datetime) -> TaskWithoutUser:
+    return TaskTable(
+        name="Test name",
+        description="Test description",
+        task_id="fe8d85be-c813-492b-86f4-2739550beb1a",
+        created_at=created_at,
+        updated_at=None,
+    )
 
 
 @pytest.fixture
-def user_table(user: User) -> UserTable:
-    return UserTable(**user.model_dump())
+def task_with_user(created_at: datetime, user_id: UUID) -> TaskWithoutUser:
+    return TaskTable(
+        name="Test name",
+        description="Test description",
+        task_id="fe8d85be-c813-492b-86f4-2739550beb1a",
+        created_at=created_at,
+        updated_at=None,
+        user_id=user_id,
+    )
+
+
+@pytest.fixture
+def users_tasks(user_id: UUID, task_without_user: TaskWithoutUser) -> UserTasks:
+    return UserTasks(user_id=user_id, tasks=[task_without_user])
+
+
+@pytest.fixture
+def user_table_with_tasks(user_response: User, task_with_user: TaskTable) -> UserTable:
+    return UserTable(**user_response.model_dump() | {"tasks": [task_with_user]})

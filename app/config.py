@@ -12,6 +12,8 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()],
 )
 
+logging.getLogger("sqlalchemy.engine.Engine").addHandler(logging.NullHandler())
+
 
 class Settings(BaseSettings):
     db_user: str

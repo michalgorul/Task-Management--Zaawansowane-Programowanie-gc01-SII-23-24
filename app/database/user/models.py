@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from sqlalchemy import Column, String, TIMESTAMP, func
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from app.database.database import Base
 
@@ -19,3 +20,5 @@ class UserTable(Base):  # type: ignore
         TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
     )
     updated_at = Column(TIMESTAMP(timezone=True), default=None, onupdate=func.now())
+
+    tasks = relationship("TaskTable", back_populates="user", lazy="selectin")

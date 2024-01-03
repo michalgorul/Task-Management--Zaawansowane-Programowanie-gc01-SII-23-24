@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from fastapi_pagination import Page
 from pytest_mock import MockFixture
 
-from app.api.user.models import BaseUser, User, UserCreate
+from app.api.user.models import BaseUser, User, UserCreate, UserTasks
 from app.api.user.service import USER_NOT_FOUND
 
 
@@ -17,14 +17,17 @@ class TestUserRoutes:
             self,
             mocker: MockFixture,
             client: TestClient,
-            user: User,
+            user_response: User,
             user_create: UserCreate,
         ) -> None:
             mock_create_user_service = mocker.patch(
-                "app.api.user.router.service.create_user", return_value=user
+                "app.api.user.router.service.create_user", return_value=user_response
             )
             responses.add(
-                responses.POST, "/users/", json=user.model_dump_json(), status=200
+                responses.POST,
+                "/users/",
+                json=user_response.model_dump_json(),
+                status=200,
             )
             response = client.post(
                 "/users/", json=user_create.model_dump() | {"password": "password1!"}
@@ -54,15 +57,19 @@ class TestUserRoutes:
     class TestGetUser:
         @responses.activate
         def test_get_user__ok(
-            self, mocker: MockFixture, client: TestClient, user: User, user_id: UUID
+            self,
+            mocker: MockFixture,
+            client: TestClient,
+            user_response: User,
+            user_id: UUID,
         ) -> None:
             mock_get_user_service = mocker.patch(
-                "app.api.user.router.service.get_user", return_value=user
+                "app.api.user.router.service.get_user", return_value=user_response
             )
             responses.add(
                 responses.GET,
                 f"/users/{user_id}",
-                json=user.model_dump_json(),
+                json=user_response.model_dump_json(),
                 status=200,
             )
             response = client.get(f"/users/{user_id}")
@@ -75,7 +82,11 @@ class TestUserRoutes:
 
         @responses.activate
         def test_get_user__not_found(
-            self, mocker: MockFixture, client: TestClient, user: User, user_id: UUID
+            self,
+            mocker: MockFixture,
+            client: TestClient,
+            user_response: User,
+            user_id: UUID,
         ) -> None:
             mock_get_user_service = mocker.patch(
                 "app.api.user.router.service.get_user",
@@ -85,6 +96,49 @@ class TestUserRoutes:
 
             assert response.status_code == 404
             mock_get_user_service.assert_awaited_once()
+
+    class TestGetUserTasks:
+        @responses.activate
+        def test_get_user_tasks__ok(
+            self,
+            mocker: MockFixture,
+            client: TestClient,
+            users_tasks: UserTasks,
+            user_id: UUID,
+        ) -> None:
+            mock_get_user_tasks_service = mocker.patch(
+                "app.api.user.router.service.get_user_tasks", return_value=users_tasks
+            )
+            responses.add(
+                responses.GET,
+                f"/users/tasks/{user_id}",
+                json=users_tasks.model_dump_json(),
+                status=200,
+            )
+            response = client.get(f"/users/tasks/{user_id}")
+
+            assert response.status_code == 200
+            retrieved_user = response.json()
+            assert isinstance(UUID(retrieved_user["userId"]), UUID)
+            assert retrieved_user["userId"] == str(user_id)
+            mock_get_user_tasks_service.assert_awaited_once()
+
+        @responses.activate
+        def test_get_user_tasks__not_found(
+            self,
+            mocker: MockFixture,
+            client: TestClient,
+            user_response: User,
+            user_id: UUID,
+        ) -> None:
+            mock_get_user_tasks_service = mocker.patch(
+                "app.api.user.router.service.get_user_tasks",
+                side_effect=HTTPException(*USER_NOT_FOUND),
+            )
+            response = client.get(f"/users/tasks/{user_id}")
+
+            assert response.status_code == 404
+            mock_get_user_tasks_service.assert_awaited_once()
 
     class TestGetUsersUser:
         @responses.activate

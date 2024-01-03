@@ -1,11 +1,13 @@
 import re
 from datetime import datetime
+from typing import List
 from uuid import UUID
 
 from pydantic import EmailStr, Field, field_validator
 from pydantic.types import SecretStr
 
 from app.api.models import BaseModel
+from app.api.task.models import Task, TaskWithoutUser
 
 
 class BaseUser(BaseModel):
@@ -18,10 +20,19 @@ class UserUpdate(BaseModel):
     email: EmailStr | None = Field(None)
 
 
-class User(BaseUser):
+class UserResponse(BaseUser):
     user_id: UUID = Field(..., alias="userId")
     created_at: datetime = Field(..., alias="createdAt")
-    updated_at: datetime | None = Field(..., alias="updatedAt")
+    updated_at: datetime | None = Field(None, alias="updatedAt")
+
+
+class User(UserResponse):
+    tasks: List[Task] | None = Field(None)
+
+
+class UserTasks(BaseModel):
+    user_id: UUID = Field(..., alias="userId")
+    tasks: List[TaskWithoutUser] = Field([])
 
 
 class UserCreate(BaseUser):
